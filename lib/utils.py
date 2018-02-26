@@ -1,24 +1,3 @@
-#
-#       Copyright (C) 2014-2015
-#       Sean Poyser (seanpoyser@gmail.com)
-#
-#  This Program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2, or (at your option)
-#  any later version.
-#
-#  This Program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with XBMC; see the file COPYING.  If not, write to
-#  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-#  http://www.gnu.org/copyleft/gpl.html
-#
-
-
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -37,15 +16,15 @@ def GetXBMCVersion():
 
 
 
-ADDONID = 'plugin.program.super.favourites'
+ADDONID = 'plugin.video.egtop'
 ADDON   =  xbmcaddon.Addon(ADDONID)
 HOME    =  ADDON.getAddonInfo('path')
 
 ROOT    =  ADDON.getSetting('FOLDER')
 if not ROOT:
-    ROOT = 'special://profile/addon_data/plugin.program.super.favourites/'
+    ROOT = 'special://profile/addon_data/plugin.video.egtop/'
 
-PROFILE =  os.path.join(ROOT, 'Super Favourites')
+PROFILE =  os.path.join(ROOT, 'EgTOP')
 VERSION =  ADDON.getAddonInfo('version')
 ICON    =  os.path.join(HOME, 'icon.png')
 FANART  =  os.path.join(HOME, 'fanart.jpg')
@@ -73,17 +52,11 @@ HOMEFULL    = xbmc.translatePath(HOMESPECIAL)
 DEBUG = ADDON.getSetting('DEBUG') == 'true'
 
 
-KEYMAP_HOT  = 'super_favourites_hot.xml'
-KEYMAP_MENU = 'super_favourites_menu.xml'
-
 MAJOR, MINOR = GetXBMCVersion()
 FRODO        = (MAJOR == 12) and (MINOR < 9)
 GOTHAM       = (MAJOR == 13) or (MAJOR == 12 and MINOR == 9)
 HELIX        = (MAJOR == 14) or (MAJOR == 13 and MINOR == 9)
 ISENGARD     = (MAJOR == 15) or (MAJOR == 14 and MINOR == 9)
-
-FILENAME     = 'favourites.xml'
-FOLDERCFG    = 'folder.cfg'
 
 
 def Log(text):
