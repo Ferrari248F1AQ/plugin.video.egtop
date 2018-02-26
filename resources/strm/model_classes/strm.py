@@ -45,6 +45,25 @@ class strm:
             strm.__instance = self
 
     """
+    It opens a dialog window to select where .strm will be created
+    """
+    def selectStrmFolder(self):
+        root = utils.HOME.split(os.sep, 1)[0] + os.sep
+        strm_path = xbmcgui.Dialog().browse(3, "Select .strm folder", 'files', '', False, False, root)
+
+        _cache.set( "db_strm_folder", strm_path)
+
+
+    """
+    It returns the selected folder for .strm files
+    """
+    def getStrmFolder(self):
+        folder = _cache.get("db_strm_folder")
+
+        return folder
+
+
+    """
     It sets the folder where .strm files will be saved
     
         :param name: The name of the file

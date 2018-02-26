@@ -52,12 +52,14 @@ def localPlaylist():
 # UI builder functions
 def show_root_menu():
     ''' Show the plugin root menu '''
-    liStyle = xbmcgui.ListItem("1) Aggiungi M3U")
-    addDirectoryItem({"mode": "aggiungi_lista_m3u"}, liStyle)
-    liStyle = xbmcgui.ListItem("2) Crea .strm files")
-    addDirectoryItem({"mode": "crea_strm"}, liStyle)
-    liStyle = xbmcgui.ListItem("DEBUG")
-    addDirectoryItem({"mode": "debug"}, liStyle)
+    liStyle = xbmcgui.ListItem("1) Add M3U playlist")
+    addDirectoryItem({"mode": "add_playlist_m3u"}, liStyle)
+    liStyle = xbmcgui.ListItem("2) Select .strm folder")
+    addDirectoryItem({"mode": "select_strm_folder"}, liStyle)
+    liStyle = xbmcgui.ListItem("3) Create .strm files")
+    addDirectoryItem({"mode": "create_strm_files"}, liStyle)
+    #liStyle = xbmcgui.ListItem("DEBUG")
+    #addDirectoryItem({"mode": "debug"}, liStyle)
     xbmcplugin.endOfDirectory(handle=handle, succeeded=True)
 
     
@@ -77,14 +79,17 @@ subType = str(params.get("sub_type", ""))
 tags = str(params.get("tags", ""))
 
 
-if mode == "aggiungi_lista_m3u":
+if mode == "add_playlist_m3u":
     playlist = handlerPlaylist.createInstance()
     handlerPlaylist.openLocalPlaylist()
     extensions = ('.avi', '.mkv')
     playlist_filtered = handlerPlaylist.extractVODFromPlaylist(extensions)
     xbmcgui.Dialog().ok(str(__name_plugin__), "Playlist added! It will be recorded for " + str(expiring_days_playlists) + " days.")   
-    
-if mode == "crea_strm":
+
+if mode == "select_strm_folder":
+    handlerStrm.selectStrmFolder()
+
+if mode == "create_strm_files":
     handlerStrm.setStrmFolder()
     playlist = handlerPlaylist.getPlaylistFiltered()
     handlerStrm.createStrmFileFromPlaylist(playlist)

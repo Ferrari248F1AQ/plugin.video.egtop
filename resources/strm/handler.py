@@ -30,10 +30,15 @@ def createInstance():
 
     return strm()
 
+def selectStrmFolder():
+    strm().selectStrmFolder()
+
 def setStrmFolder():
-    abs_path_folder = os.path.join(abs_main_folder, outputstrm_name_folder)
-    
-    strm().setStrmFolder(abs_path_folder)    
+    strm_folder = strm().getStrmFolder()
+    if strm_folder:
+        strm().setStrmFolder(strm_folder)
+    else:
+        xbmcgui.Dialog().ok(str("Error", "Destination folder hasn't been selected!"))
 
 def createStrmFileFromPlaylist(playlist):
     abs_path_folder = os.path.join(abs_main_folder, outputstrm_name_folder)
