@@ -53,19 +53,6 @@ class playlist:
             playlist.__instance = self
             self.recoveryParameter()
 
-    """
-    It opens a dialog window to select a Playlist in a local path
-    """
-    def selectLocalPlaylist(self):
-        root     = utils.HOME.split(os.sep, 1)[0] + os.sep    
-        playlist_path = xbmcgui.Dialog().browse(1, utils.GETTEXT(30148), 'files', PLAYLIST_EXT, False, False, root)
-    
-        if playlist and playlist != root:
-            self.playlist_path = playlist
-            return playlist_path
-
-        return None
-    
 
 
 
@@ -113,6 +100,40 @@ class playlist:
         return self.playlist_filtered
 
 
+
+    """
+    It returns the list of the filtering keywords
+
+        :return: The list of the filtering keywords
+        :rtype: list
+    """
+    def getLanguageFilteringKeywords(self):
+
+        return _cache.get("db_language_filtering_keywords")
+
+
+    """
+    It returns the Playlist
+
+        :return: The Playlist
+        :rtype: list
+    """
+    def getPlaylist(self):
+
+        return _cache.get("db_playlist")
+
+    """
+    It returns the Playlist filtered by media elements
+
+        :return: The Playlist filtered by media elements
+        :rtype: list
+    """
+    def getPlaylistFiltered(self):
+
+        return _cache.get("db_playlist_filtered")
+
+
+
     """
     It converts every media contained in the Playlist list for which each item
     is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
@@ -130,6 +151,7 @@ class playlist:
         path  = ''
         title = ''
         title_not_splitted = ''
+        kind_of_media = ''
 
         try:
             for line in playlist:
@@ -142,7 +164,7 @@ class playlist:
                 else:
                     path = line.replace('rtmp://$OPT:rtmp-raw=', '')
                     if len(path) > 0 and len(title) > 0:
-                        items.append([title, path, title_not_splitted])
+                        items.append([title, path, title_not_splitted, kind_of_media])
                     path  = ''
                     title = ''
                     title_not_splitted = ''
@@ -203,41 +225,26 @@ class playlist:
             return True
 
 
-             
-    """
-    It returns the list of the filtering keywords
-
-        :return: The list of the filtering keywords
-        :rtype: list
-    """
-    def getLanguageFilteringKeywords(self):
-
-        return _cache.get("db_language_filtering_keywords")
 
 
     """
-    It returns the Playlist
-    
-        :return: The Playlist
-        :rtype: list
-    """    
-    def getPlaylist(self):   
-        
-        return _cache.get("db_playlist")
-     
-    """
-    It returns the Playlist filtered by media elements
-    
-        :return: The Playlist filtered by media elements
-        :rtype: list
-    """    
-    def getPlaylistFiltered(self):   
-        
-        return _cache.get("db_playlist_filtered")  
+    It selects the kind of media to extract (Movie, TV Series or both)
 
+        :param kind_of_media: The selected kind of media
+        :type kind_of_media: list
+    """
+    def selectKindOfMedia(self, kind_of_media):
+        list = []
+        if "Movies" in kind_of_media:
+            kind_of_media_keywords = ["movies"]
+            list += kind_of_media_keywords
+        if "TV Shows" in kind_of_media:
+            kind_of_media_keywords = ["tvshows"]
+            list += kind_of_media_keywords
+        _cache.set( "db_kind_of_media_filtering_keywords", list)
 
     """
-    It returns the Playlist filtered by media elements
+    It selects the preferred languages for media
 
         :param languages: The selected languages for the media
         :type languages: list
@@ -257,3 +264,35 @@ class playlist:
             lang_keywords = ["it", "italian", "ita"]
             filtering_keywords += lang_keywords
         _cache.set( "db_language_filtering_keywords", filtering_keywords)
+
+
+    """
+    It opens a dialog window to select a Playlist in a local path
+    """
+    def selectLocalPlaylist(self):
+        root     = utils.HOME.split(os.sep, 1)[0] + os.sep
+        playlist_path = xbmcgui.Dialog().browse(1, utils.GETTEXT(30148), 'files', PLAYLIST_EXT, False, False, root)
+
+        if playlist and playlist != root:
+            self.playlist_path = playlist
+            return playlist_path
+
+        return None
+
+
+    """
+    After that playlist has been readen and VOD have been extracted and filtered using keywords, it allows to split VOD by kind of media (Movies, TVShow)
+
+    """
+    def splitVODbyKindOfMedia(self):
+
+        items_filtered = []
+        for item in self.playlist_filtered:
+            #general speaking each tv series show has a title of kind (tv show name INTxINT ... .extension)
+            m = re.search(r'(\d+)x(\d+)', item[2])
+            if m:
+                item[3] = "tvshow"
+            else:
+                item[3] = "movie"
+
+        _cache.set("db_playlist_filtered", self.playlist_filtered)

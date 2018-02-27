@@ -60,6 +60,17 @@ def getPlaylistFiltered():
 
     return plylst
 
+def selectKindOfMedia():
+    list_kind_of_media = xbmcgui.Dialog().multiselect("Select kind of Media", ["Movies", "TV Series"])
+    kind_of_media = []
+    if 0 in list_kind_of_media:
+        kind_of_media.append("Movies")
+    if 1 in list_kind_of_media:
+        kind_of_media.append("TV Shows")
+    playlist().selectKindOfMedia(kind_of_media)
+    playlist().splitVODbyKindOfMedia()
+
+
 def selectLanguages():
     list_sel_lang = xbmcgui.Dialog().multiselect("Select media language", ["De", "En", "Fr", "It"])
     languages = []

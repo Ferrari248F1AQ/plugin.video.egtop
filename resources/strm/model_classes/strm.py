@@ -46,19 +46,55 @@ class strm:
 
 
     """
+    It creates a new .strm file
+
+        :param name: The name of the file
+        :type content: The content of the file
+    """
+    def createStrmFile(self, name, content):
+        file = open(name + ".strm", "a+")
+        file.write("test")
+
+
+
+    """
     It creates a .strm file for each media file contained in a Playlist
 
       :param playlist: Playlist from which create .strm files
       :type playlist: list
     """
     def createStrmFileFromPlaylist(self, playlist):
+      if not os.path.exists("TV Shows"):
+          os.makedirs("TV Shows")
+
+      if not os.path.exists("Movies"):
+          os.makedirs("Movies")
+
+
+      os.chdir( os.path.join("TV Shows") )
+
       for item in playlist:
           #dots and slashs deleted from file name to avoid issues during file creation
           item[0] = item[0].replace(".", " ")
           item[0] = item[0].replace("/", " ")
-          file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
-          if file:
-              file.write(item[1])
+          if item[3] is "tvshow":
+            file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
+            if file:
+                file.write(item[1])
+
+      os.chdir( os.path.join(os.pardir) )
+      os.chdir( os.path.join("Movies") )
+
+      for item in playlist:
+          #dots and slashs deleted from file name to avoid issues during file creation
+          item[0] = item[0].replace(".", " ")
+          item[0] = item[0].replace("/", " ")
+          if item[3] is "movie":
+            file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
+            if file:
+                file.write(item[1])
+
+
 
     """
     It deletes all the files into a folder
@@ -71,14 +107,21 @@ class strm:
                 os.remove(item)
 
 
-    """
-    It opens a dialog window to select where .strm will be created
-    """
-    def selectStrmFolder(self):
-        root = utils.HOME.split(os.sep, 1)[0] + os.sep
-        strm_path = xbmcgui.Dialog().browse(3, "Select .strm folder", 'files', '', False, False, root)
 
-        _cache.set( "db_strm_folder", strm_path)
+    """
+    After that playlist has been readen, it selects from the Playlist only media which have a media extesion contained in Type
+
+        :param items: Playlist converted in a list
+        :param extensions: Type of extension to be extracted from the Playlist
+        :type items: list
+        :param extensions: tuple
+        :return: A filtered list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
+        :rtype: list
+    """
+    def getPlaylist(self):
+
+        self.playlist = _cache.get("db_playlist")
+        self.playlist_filtered = _cache.get("db_playlist_filtered")
 
 
     """
@@ -100,16 +143,6 @@ class strm:
         os.chdir(abs_path_folder)
 
 
-            
-    """
-    It creates a new .strm file
-    
-        :param name: The name of the file
-        :type content: The content of the file
-    """    
-    def createStrmFile(self, name, content):
-        file = open(name + ".strm", "a+")
-        file.write("test")      
     
     
     """
@@ -152,21 +185,14 @@ class strm:
             _cache.set( "db_playlist", self.playlist, expiration=datetime.timedelta(hours=12))
             return True
                        
-            
+
     """
-    After that playlist has been readen, it selects from the Playlist only media which have a media extesion contained in Type
-    
-        :param items: Playlist converted in a list
-        :param extensions: Type of extension to be extracted from the Playlist
-        :type items: list
-        :param extensions: tuple
-        :return: A filtered list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
-        :rtype: list
-    """    
-    def getPlaylist(self):   
-        
-        self.playlist = _cache.get("db_playlist")
-        self.playlist_filtered = _cache.get("db_playlist_filtered")
-     
+    It opens a dialog window to select where .strm will be created
+    """
+    def selectStrmFolder(self):
+        root = utils.HOME.split(os.sep, 1)[0] + os.sep
+        strm_path = xbmcgui.Dialog().browse(3, "Select .strm folder", 'files', '', False, False, root)
+
+        _cache.set( "db_strm_folder", strm_path)
         
 

@@ -47,9 +47,11 @@ def show_root_menu():
     addDirectoryItem({"mode": "add_playlist_m3u"}, liStyle)
     liStyle = xbmcgui.ListItem("2) Select languages")
     addDirectoryItem({"mode": "select_languages"}, liStyle)
-    liStyle = xbmcgui.ListItem("3) Select .strm folder")
+    liStyle = xbmcgui.ListItem("3) Select kind of media")
+    addDirectoryItem({"mode": "select_kind_of_media"}, liStyle)
+    liStyle = xbmcgui.ListItem("4) Select .strm folder")
     addDirectoryItem({"mode": "select_strm_folder"}, liStyle)
-    liStyle = xbmcgui.ListItem("4) Create .strm files")
+    liStyle = xbmcgui.ListItem("5) Create .strm files")
     addDirectoryItem({"mode": "create_strm_files"}, liStyle)
     #liStyle = xbmcgui.ListItem("DEBUG")
     #addDirectoryItem({"mode": "debug"}, liStyle)
@@ -82,6 +84,9 @@ if mode == "add_playlist_m3u":
 if mode == "select_languages":
     handlerPlaylist.selectLanguages()
     handlerPlaylist.filterVODbyLanguage()
+
+if mode == "select_kind_of_media":
+    handlerPlaylist.selectKindOfMedia()
 
 
 if mode == "select_strm_folder":
