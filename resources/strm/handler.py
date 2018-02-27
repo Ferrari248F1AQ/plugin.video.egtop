@@ -41,8 +41,8 @@ def setStrmFolder():
         xbmcgui.Dialog().ok(str("Error", "Destination folder hasn't been selected!"))
 
 def createStrmFileFromPlaylist(playlist):
-    abs_path_folder = os.path.join(abs_main_folder, outputstrm_name_folder)
-    strm().deleteFilesFromFolder(abs_path_folder)
+    strm_folder = strm().getStrmFolder()
+    strm().deleteFilesFromFolder(strm_folder)
     strm().createStrmFileFromPlaylist(playlist)
 
 

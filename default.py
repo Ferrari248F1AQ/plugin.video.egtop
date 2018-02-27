@@ -34,29 +34,22 @@ def parameters_string_to_dict(parameters):
     ''' Convert parameters encoded in a URL to a dict. '''
     paramDict = dict(urlparse.parse_qsl(parameters[1:]))
     return paramDict
-    
+
 def addDirectoryItem(parameters, li):
     url = sys.argv[0] + '?' + urllib.urlencode(parameters)
-    return xbmcplugin.addDirectoryItem(handle=handle, url=url, 
+    return xbmcplugin.addDirectoryItem(handle=handle, url=url,
         listitem=li, isFolder=True)
-        
-def localPlaylist():
-    import playlist
-    playlist = playlist.getPlaylist()
-
-    if not playlist:
-        return False
-
-    return True
 
 # UI builder functions
 def show_root_menu():
     ''' Show the plugin root menu '''
     liStyle = xbmcgui.ListItem("1) Add M3U playlist")
     addDirectoryItem({"mode": "add_playlist_m3u"}, liStyle)
-    liStyle = xbmcgui.ListItem("2) Select .strm folder")
+    liStyle = xbmcgui.ListItem("2) Select languages")
+    addDirectoryItem({"mode": "select_languages"}, liStyle)
+    liStyle = xbmcgui.ListItem("3) Select .strm folder")
     addDirectoryItem({"mode": "select_strm_folder"}, liStyle)
-    liStyle = xbmcgui.ListItem("3) Create .strm files")
+    liStyle = xbmcgui.ListItem("4) Create .strm files")
     addDirectoryItem({"mode": "create_strm_files"}, liStyle)
     #liStyle = xbmcgui.ListItem("DEBUG")
     #addDirectoryItem({"mode": "debug"}, liStyle)
@@ -86,6 +79,11 @@ if mode == "add_playlist_m3u":
     playlist_filtered = handlerPlaylist.extractVODFromPlaylist(extensions)
     xbmcgui.Dialog().ok(str(__name_plugin__), "Playlist added! It will be recorded for " + str(expiring_days_playlists) + " days.")   
 
+if mode == "select_languages":
+    handlerPlaylist.selectLanguages()
+    handlerPlaylist.filterVODbyLanguage()
+
+
 if mode == "select_strm_folder":
     handlerStrm.selectStrmFolder()
 
@@ -96,21 +94,7 @@ if mode == "create_strm_files":
     xbmcgui.Dialog().ok(str(__name_plugin__), "All .strm files created!")
     
 if mode == "debug":
-    from lib import simplecache
-
-    _cache = simplecache.SimpleCache()
-    
-    xbmcgui.Dialog().ok("mammota", str(_cache.get("db_playlist")) ) 
-    """
-    from lib import simplecache
-
-    _cache = simplecache.SimpleCache()
-       
-    if _cache.set( "testare", "porco_dincisss", expiration=datetime.timedelta(hours=12)):
-        xbmcgui.Dialog().ok("mammota", "mammota" )
-    else:
-        xbmcgui.Dialog().ok("mammota", _cache.get("db_playlist") ) 
-    """       
+    xbmcgui.Dialog().ok(str(__name_plugin__), str( handlerPlaylist.getPlaylistFiltered() ))
 
 else:
     show_root_menu()

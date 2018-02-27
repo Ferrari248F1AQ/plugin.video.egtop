@@ -21,6 +21,7 @@
 import xbmc
 import os
 import glob
+import re
 import xbmcgui
 import pickle
 import datetime
@@ -66,60 +67,7 @@ class playlist:
         return None
     
 
-    """
-    It reads all the lines of the Playlist and returns a list 
-    
-        :param path: The absolute path of the playlist
-        :type path: str
-        :return: A list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
-        :rtype: list
-    """    
-    def readPlaylist(self, path):    
-        if not sfile.exists(path):
-            pass
 
-        playlist = sfile.readlines(path) 
-        items = self.parse(playlist)   
-        self.savePlaylist(items)
-        
-
-        return self.playlist
-     
-            
-    """
-    It converts every media contained in the Playlist list for which each item 
-    is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
-    
-        :param playlist: The playlist
-        :type playlist: sfile
-        :return: A list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
-        :rtype: list
-    """          
-    def parse(self, playlist):
-        if len(playlist) == 0:
-            return []
-
-        items = []
-        path  = ''
-        title = ''
- 
-        try:
-            for line in playlist:         
-                line = line.strip()
-                if line.startswith('#EXTINF:'):                
-                    title  = line.split(':', 1)[-1].split(',', 1)[-1]
-                    if len(title) == 0:
-                        title = "Unnamed" #SJP
-                else:
-                    path = line.replace('rtmp://$OPT:rtmp-raw=', '')
-                    if len(path) > 0 and len(title) > 0:                    
-                        items.append([title, path])
-                    path  = ''
-                    title = ''
-        except:
-            pass  
-          
-        return items    
 
     """
     After that playlist has been readen, it selects from the Playlist only media which have a media extesion contained in Type
@@ -143,8 +91,98 @@ class playlist:
 
         return self.playlist_filtered
         
-        
-        
+
+    """
+    After that playlist has been readen and VOD have been extracted, it allows to extract VOD which are conforms to specified keywords criteria
+
+        :param filtering_keywords: List of keywords which have to been used for filtering
+        :type filtering_keywords: list
+        :return: A filtered list of VOD which are conforms to the specified filtering keywords
+        :rtype: list
+    """
+    def filterVODbyKeywords(self, filtering_keywords):
+
+        items_filtered = []
+        for item in self.playlist_filtered:
+            if any(filtering_keyword in re.search('group-title="(.+?)"', item[2]).group(1) for filtering_keyword in filtering_keywords):
+                items_filtered.append(item)
+
+        self.playlist_filtered = items_filtered
+        _cache.set( "db_playlist_filtered", items_filtered)
+
+        return self.playlist_filtered
+
+
+    """
+    It converts every media contained in the Playlist list for which each item
+    is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
+
+        :param playlist: The playlist
+        :type playlist: sfile
+        :return: A list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
+        :rtype: list
+    """
+    def parse(self, playlist):
+        if len(playlist) == 0:
+            return []
+
+        items = []
+        path  = ''
+        title = ''
+        title_not_splitted = ''
+
+        try:
+            for line in playlist:
+                line = line.strip()
+                if line.startswith('#EXTINF:'):
+                    title_not_splitted = line.lower()
+                    title  = line.split(':', 1)[-1].split(',', 1)[-1]
+                    if len(title) == 0:
+                        title = "Unnamed" #SJP
+                else:
+                    path = line.replace('rtmp://$OPT:rtmp-raw=', '')
+                    if len(path) > 0 and len(title) > 0:
+                        items.append([title, path, title_not_splitted])
+                    path  = ''
+                    title = ''
+                    title_not_splitted = ''
+        except:
+            pass
+
+        return items
+
+
+
+    """
+    It reads all the lines of the Playlist and returns a list
+
+        :param path: The absolute path of the playlist
+        :type path: str
+        :return: A list for which each item is a list of the type [:str name_of_media, :str path_of_media] for every value cointaned in the Playlist
+        :rtype: list
+    """
+    def readPlaylist(self, path):
+        if not sfile.exists(path):
+            pass
+
+        playlist = sfile.readlines(path)
+        items = self.parse(playlist)
+        self.savePlaylist(items)
+
+
+        return self.playlist
+
+
+
+    """
+    It syncs the parameters with Foundation
+
+    """
+    def recoveryParameter(self):
+        self.playlist = _cache.get("db_playlist")
+        self.playlist_filtered = _cache.get("db_playlist_filtered")
+
+
     """
     After that playlist has been readen, it selects from the Playlist only media which have a media extesion contained in Type
     
@@ -163,16 +201,20 @@ class playlist:
         else:
             _cache.set( "db_playlist", self.playlist, expiration=datetime.timedelta(days = expiring_days_playlists))
             return True
-    
-    """
-    It syncs the parameters with Foundation 
 
-    """    
-    def recoveryParameter(self):
-        self.playlist = _cache.get("db_playlist") 
-        self.playlist_filtered = _cache.get("db_playlist_filtered")    
+
              
-            
+    """
+    It returns the list of the filtering keywords
+
+        :return: The list of the filtering keywords
+        :rtype: list
+    """
+    def getLanguageFilteringKeywords(self):
+
+        return _cache.get("db_language_filtering_keywords")
+
+
     """
     It returns the Playlist
     
@@ -193,3 +235,25 @@ class playlist:
         
         return _cache.get("db_playlist_filtered")  
 
+
+    """
+    It returns the Playlist filtered by media elements
+
+        :param languages: The selected languages for the media
+        :type languages: list
+    """
+    def selectLanguages(self, languages):
+        filtering_keywords = []
+        if "De" in languages:
+            lang_keywords = ["de", "deutsch", "dutch", "ger"]
+            filtering_keywords += lang_keywords
+        if "En" in languages:
+            lang_keywords = ["en", "english", "uk", "eng"]
+            filtering_keywords += lang_keywords
+        if "Fr" in languages:
+            lang_keywords = ["fr", "french", "fra"]
+            filtering_keywords += lang_keywords
+        if "It" in languages:
+            lang_keywords = ["it", "italian", "ita"]
+            filtering_keywords += lang_keywords
+        _cache.set( "db_language_filtering_keywords", filtering_keywords)

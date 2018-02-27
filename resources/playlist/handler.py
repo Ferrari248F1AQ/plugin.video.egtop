@@ -37,7 +37,17 @@ def openLocalPlaylist():
     
 def extractVODFromPlaylist(extensions):
     items = playlist().extractVODFromPlaylist(extensions)
+
     return items
+
+def filterVODbyLanguage():
+    filtering_keywords = playlist().getLanguageFilteringKeywords()
+    playlist().filterVODbyKeywords(filtering_keywords)
+
+
+def getFilteringKeywords():
+    filtering_keywords = playlist().getFilteringKeyworkds()
+    playlist().filterVODbyKeywords(filtering_keywords)
 
     
 def getPlaylist():
@@ -49,3 +59,16 @@ def getPlaylistFiltered():
     plylst = playlist().getPlaylistFiltered()
 
     return plylst
+
+def selectLanguages():
+    list_sel_lang = xbmcgui.Dialog().multiselect("Select media language", ["De", "En", "Fr", "It"])
+    languages = []
+    if 0 in list_sel_lang:
+        languages.append("De")
+    if 1 in list_sel_lang:
+        languages.append("En")
+    if 2 in list_sel_lang:
+        languages.append("Fr")
+    if 3 in list_sel_lang:
+        languages.append("It")
+    playlist().selectLanguages(languages)

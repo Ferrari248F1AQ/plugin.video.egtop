@@ -44,6 +44,33 @@ class strm:
         else:
             strm.__instance = self
 
+
+    """
+    It creates a .strm file for each media file contained in a Playlist
+
+      :param playlist: Playlist from which create .strm files
+      :type playlist: list
+    """
+    def createStrmFileFromPlaylist(self, playlist):
+      for item in playlist:
+          #dots and slashs deleted from file name to avoid issues during file creation
+          item[0] = item[0].replace(".", " ")
+          item[0] = item[0].replace("/", " ")
+          file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
+          if file:
+              file.write(item[1])
+
+    """
+    It deletes all the files into a folder
+    """
+    def deleteFilesFromFolder(self, path):
+        fileList = os.listdir(path)
+        for filename in fileList:
+            item=os.path.join(path, filename)
+            if os.path.isfile(item):
+                os.remove(item)
+
+
     """
     It opens a dialog window to select where .strm will be created
     """
@@ -71,32 +98,8 @@ class strm:
     """    
     def setStrmFolder(self, abs_path_folder):
         os.chdir(abs_path_folder)
-  
-  
-    """
-    It creates a .strm file for each media file contained in a Playlist
 
-      :param playlist: Playlist from which create .strm files
-      :type playlist: list
-    """    
-    def createStrmFileFromPlaylist(self, playlist):
-      for item in playlist:
-          #dots and slashs deleted from file name to avoid issues during file creation
-          item[0] = item[0].replace(".", " ")
-          item[0] = item[0].replace("/", " ")    
-          file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
-          if file:
-              file.write(item[1])
-  
-    """
-    It deletes all the files into a folder
-    """
-    def deleteFilesFromFolder(self, path):
-        fileList = os.listdir(path)
-        for filename in fileList:
-            item=os.path.join(path, filename)
-            if os.path.isfile(item): 
-                os.remove(item)
+
             
     """
     It creates a new .strm file
