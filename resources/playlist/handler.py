@@ -68,6 +68,7 @@ def selectKindOfMedia():
     if 1 in list_kind_of_media:
         kind_of_media.append("TV Shows")
     playlist().selectKindOfMedia(kind_of_media)
+    #playlist().deleteDuplicates()
     playlist().splitVODbyKindOfMedia()
 
 

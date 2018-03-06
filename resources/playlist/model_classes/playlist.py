@@ -25,6 +25,7 @@ import re
 import xbmcgui
 import pickle
 import datetime
+from difflib import SequenceMatcher
 
 from lib import utils
 from lib import sfile
@@ -54,6 +55,23 @@ class playlist:
             self.recoveryParameter()
 
 
+    """
+    In the playlist may be several media associated to a same title. For example for a certain movie there can be an .avi
+    version or a .mkv version. This method helps to delete duplicates
+
+    """
+    def deleteDuplicates(self):
+        items_filtered = []
+        for item in self.playlist_filtered:
+            for item_filtered in items_filtered:
+                item[0] = item[0].replace(' ', '')
+                item_filtered[0] = item_filtered[0].replace(' ', '')
+                if SequenceMatcher(None, item[0], item_filtered[0]).ratio() >= 0.50 and item[3] is "movie":
+                    if item[1].endswith('.avi'):
+                        item_filtered = item
+
+        self.playlist_filtered = items_filtered
+        _cache.set( "db_playlist_filtered", items_filtered)
 
 
     """
@@ -74,7 +92,7 @@ class playlist:
                 items_filtered.append(item)
                 
         self.playlist_filtered = items_filtered
-        _cache.set( "db_playlist_filtered", items_filtered, expiration=datetime.timedelta(hours=12))        
+        _cache.set( "db_playlist_filtered", items_filtered)
 
         return self.playlist_filtered
         

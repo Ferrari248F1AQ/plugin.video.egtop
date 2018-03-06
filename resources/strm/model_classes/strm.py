@@ -25,6 +25,7 @@ import codecs
 import glob
 import xbmcgui
 import pickle
+import re
 import datetime
 
 from lib import utils
@@ -74,19 +75,25 @@ class strm:
       os.chdir( os.path.join("TV Shows") )
 
       for item in playlist:
-          #dots and slashs deleted from file name to avoid issues during file creation
+          #dots and slashs are deleted from file name to avoid issues during file creation
           item[0] = item[0].replace(".", " ")
           item[0] = item[0].replace("/", " ")
+          #for each tv show must be associated a own folder
+          subfolder_name = re.split(r'(\d+)x(\d+)', item[0])[0][:63]
           if item[3] is "tvshow":
+            if not os.path.exists(subfolder_name):
+                os.makedirs(subfolder_name)
+            os.chdir(os.path.join(subfolder_name))
             file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
             if file:
                 file.write(item[1])
+            os.chdir(os.path.join(os.pardir))
 
       os.chdir( os.path.join(os.pardir) )
       os.chdir( os.path.join("Movies") )
 
       for item in playlist:
-          #dots and slashs deleted from file name to avoid issues during file creation
+          #dots and slashs are deleted from file name to avoid issues during file creation
           item[0] = item[0].replace(".", " ")
           item[0] = item[0].replace("/", " ")
           if item[3] is "movie":
