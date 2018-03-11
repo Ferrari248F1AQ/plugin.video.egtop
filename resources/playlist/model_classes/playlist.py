@@ -18,16 +18,14 @@
 #  http://www.gnu.org/copyleft/gpl.html
 #
 
-import xbmc
+import datetime
 import os
-import glob
 import re
 import xbmcgui
-import pickle
-import datetime
 from difflib import SequenceMatcher
 
 from lib import utils
+from lib import quicknet
 from lib import sfile
 from lib import simplecache
 
@@ -44,6 +42,7 @@ class playlist:
     playlist_path = None
     playlist = None
     playlist_filtered = None
+    playlist_url = None
     
     
     def __init__(self):
@@ -71,7 +70,35 @@ class playlist:
                         item_filtered = item
 
         self.playlist_filtered = items_filtered
-        _cache.set( "db_playlist_filtered", items_filtered)
+        _cache.set( "db_playlist_filtered", items_filtered, expiration=datetime.timedelta(days = expiring_days_cache))
+
+
+    """
+    It download from web (via http) and save into a folder a .m3u playlist
+
+    """
+    def downloadPlaylist(self, folder, url = None):
+        if not url:
+            url = self.playlist_url
+
+        try:
+            html = quicknet.getURL(url, maxSec=0, tidy=False)
+        except:
+            html = ''
+
+        items = parse(html.split('\n'))
+        valid = len(items) > 0
+
+        if not valid:
+            return False
+
+        name = 'downloaded_playlist.m3u'
+        file = os.path.join(folder, 'PL', name)
+        f = sfile.file(file, 'w')
+        f.write(html)
+        f.close()
+
+        return True
 
 
     """
@@ -92,7 +119,7 @@ class playlist:
                 items_filtered.append(item)
                 
         self.playlist_filtered = items_filtered
-        _cache.set( "db_playlist_filtered", items_filtered)
+        _cache.set( "db_playlist_filtered", items_filtered, expiration=datetime.timedelta(days = expiring_days_cache))
 
         return self.playlist_filtered
         
@@ -113,11 +140,30 @@ class playlist:
                 items_filtered.append(item)
 
         self.playlist_filtered = items_filtered
-        _cache.set( "db_playlist_filtered", items_filtered)
+        _cache.set( "db_playlist_filtered", items_filtered, expiration=datetime.timedelta(days = expiring_days_cache))
 
         return self.playlist_filtered
 
 
+    """
+    After that playlist has been readen and VOD have been extracted and filtered using keywords, it allows to split VOD by kind of media (Movies, TVShow)
+
+    """
+    def filterVODbyKindOfMedia(self):
+        kind_of_media_filtering_keywords = _cache.get( "db_kind_of_media_filtering_keywords")
+        items_filtered = []
+        for item in self.playlist_filtered:
+            #general speaking each tv series show has a title of kind (tv show name INTxINT ... .extension)
+            m = re.search(rex_tv_shows, item[2])
+            if m and "tvshows" in kind_of_media_filtering_keywords:
+                item[3] = "tvshow"
+                items_filtered.append(item)
+            elif not m and "movies" in kind_of_media_filtering_keywords:
+                item[3] = "movie"
+                items_filtered.append(item)
+
+        self.playlist_filtered = items_filtered
+        _cache.set("db_playlist_filtered", items_filtered, expiration=datetime.timedelta(days = expiring_days_cache))
 
     """
     It returns the list of the filtering keywords
@@ -215,12 +261,13 @@ class playlist:
 
 
     """
-    It syncs the parameters with Foundation
+    It syncs the parameters from Foundation
 
     """
     def recoveryParameter(self):
         self.playlist = _cache.get("db_playlist")
         self.playlist_filtered = _cache.get("db_playlist_filtered")
+        self.playlist_url = _cache.get("db_playlist_url")
 
 
     """
@@ -235,11 +282,11 @@ class playlist:
     """    
     def savePlaylist(self, playlist = None): 
         if playlist: 
-            _cache.set( "db_playlist", playlist, expiration=datetime.timedelta(days = expiring_days_playlists))
+            _cache.set( "db_playlist", playlist, expiration=datetime.timedelta(days = expiring_days_cache))
             self.playlist = playlist
             return True     
         else:
-            _cache.set( "db_playlist", self.playlist, expiration=datetime.timedelta(days = expiring_days_playlists))
+            _cache.set( "db_playlist", self.playlist, expiration=datetime.timedelta(days = expiring_days_cache))
             return True
 
 
@@ -259,7 +306,7 @@ class playlist:
         if "TV Shows" in kind_of_media:
             kind_of_media_keywords = ["tvshows"]
             list += kind_of_media_keywords
-        _cache.set( "db_kind_of_media_filtering_keywords", list)
+        _cache.set( "db_kind_of_media_filtering_keywords", list, expiration=datetime.timedelta(days = expiring_days_cache))
 
     """
     It selects the preferred languages for media
@@ -281,7 +328,7 @@ class playlist:
         if "It" in languages:
             lang_keywords = ["it", "italian", "ita"]
             filtering_keywords += lang_keywords
-        _cache.set( "db_language_filtering_keywords", filtering_keywords)
+        _cache.set( "db_language_filtering_keywords", filtering_keywords, expiration=datetime.timedelta(days = expiring_days_cache))
 
 
     """
@@ -297,20 +344,13 @@ class playlist:
 
         return None
 
-
     """
-    After that playlist has been readen and VOD have been extracted and filtered using keywords, it allows to split VOD by kind of media (Movies, TVShow)
+    It sets the http path of a remote playlist
 
+        :param url: A string containing the http url of the playlist
+        :type url: string
     """
-    def splitVODbyKindOfMedia(self):
+    def setPlaylistUrl(self, url):
 
-        items_filtered = []
-        for item in self.playlist_filtered:
-            #general speaking each tv series show has a title of kind (tv show name INTxINT ... .extension)
-            m = re.search(r'(\d+)x(\d+)', item[2])
-            if m:
-                item[3] = "tvshow"
-            else:
-                item[3] = "movie"
-
-        _cache.set("db_playlist_filtered", self.playlist_filtered)
+        _cache.set("db_playlist_url", url,
+                   expiration=datetime.timedelta(days=expiring_days_cache))

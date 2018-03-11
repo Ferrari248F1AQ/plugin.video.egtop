@@ -38,7 +38,7 @@ def setStrmFolder():
     if strm_folder:
         strm().setStrmFolder(strm_folder)
     else:
-        xbmcgui.Dialog().ok(str("Error", "Destination folder hasn't been selected!"))
+        xbmcgui.Dialog().ok("Error", "Destination folder hasn't been selected!")
 
 def createStrmFileFromPlaylist(playlist):
     strm_folder = strm().getStrmFolder()

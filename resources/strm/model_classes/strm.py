@@ -32,6 +32,8 @@ from lib import utils
 from lib import sfile
 from lib import simplecache
 
+from config import *
+
 _cache = simplecache.SimpleCache()
 
 
@@ -81,17 +83,20 @@ class strm:
           #for each tv show must be associated a own folder
           subfolder_name = re.split(r'(\d+)x(\d+)', item[0])[0][:63]
           if item[3] is "tvshow":
+            """
             if not os.path.exists(subfolder_name):
                 os.makedirs(subfolder_name)
             os.chdir(os.path.join(subfolder_name))
+            """
             file = codecs.open(item[0][:63] + ".strm", "a+", errors = 'ignore')
             if file:
                 file.write(item[1])
-            os.chdir(os.path.join(os.pardir))
+                playlist.remove(item)
+            #os.chdir(os.path.join(os.pardir))
 
       os.chdir( os.path.join(os.pardir) )
       os.chdir( os.path.join("Movies") )
-
+        
       for item in playlist:
           #dots and slashs are deleted from file name to avoid issues during file creation
           item[0] = item[0].replace(".", " ")
@@ -107,11 +112,11 @@ class strm:
     It deletes all the files into a folder
     """
     def deleteFilesFromFolder(self, path):
-        fileList = os.listdir(path)
-        for filename in fileList:
-            item=os.path.join(path, filename)
-            if os.path.isfile(item):
-                os.remove(item)
+        os.chdir(path)
+        for root, dirs, files in os.walk(".", topdown=False):
+            for file in files:
+                print(os.path.join(root, file))
+                os.remove(os.path.join(root, file))
 
 
 
@@ -185,11 +190,11 @@ class strm:
     """    
     def savePlaylist(self, playlist = None):  
         if playlist:   
-            _cache.set( "db_playlist", playlist, expiration=datetime.timedelta(hours=12))
+            _cache.set( "db_playlist", playlist,  expiration=datetime.timedelta(days = expiring_days_cache))
             self.playlist = playlist
             return True     
         else:
-            _cache.set( "db_playlist", self.playlist, expiration=datetime.timedelta(hours=12))
+            _cache.set( "db_playlist", self.playlist,  expiration=datetime.timedelta(days = expiring_days_cache))
             return True
                        
 
@@ -200,6 +205,6 @@ class strm:
         root = utils.HOME.split(os.sep, 1)[0] + os.sep
         strm_path = xbmcgui.Dialog().browse(3, "Select .strm folder", 'files', '', False, False, root)
 
-        _cache.set( "db_strm_folder", strm_path)
+        _cache.set( "db_strm_folder", strm_path,  expiration=datetime.timedelta(days = expiring_days_cache))
         
 

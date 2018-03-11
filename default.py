@@ -43,7 +43,10 @@ def addDirectoryItem(parameters, li):
 # UI builder functions
 def show_root_menu():
     ''' Show the plugin root menu '''
-    liStyle = xbmcgui.ListItem("1) Add M3U playlist")
+    if handlerPlaylist.getPlaylist() is None:
+        liStyle = xbmcgui.ListItem("[COLOR red]1) Add M3U playlist[/COLOR]")
+    else:
+        liStyle = xbmcgui.ListItem("[COLOR green]1) Add M3U playlist[/COLOR]")
     addDirectoryItem({"mode": "add_playlist_m3u"}, liStyle)
     liStyle = xbmcgui.ListItem("2) Select languages")
     addDirectoryItem({"mode": "select_languages"}, liStyle)
@@ -53,8 +56,8 @@ def show_root_menu():
     addDirectoryItem({"mode": "select_strm_folder"}, liStyle)
     liStyle = xbmcgui.ListItem("5) Create .strm files")
     addDirectoryItem({"mode": "create_strm_files"}, liStyle)
-    #liStyle = xbmcgui.ListItem("DEBUG")
-    #addDirectoryItem({"mode": "debug"}, liStyle)
+    liStyle = xbmcgui.ListItem("DEBUG")
+    addDirectoryItem({"mode": "debug"}, liStyle)
     xbmcplugin.endOfDirectory(handle=handle, succeeded=True)
 
     
@@ -75,15 +78,11 @@ tags = str(params.get("tags", ""))
 
 
 if mode == "add_playlist_m3u":
-    playlist = handlerPlaylist.createInstance()
     handlerPlaylist.openLocalPlaylist()
-    extensions = ('.avi', '.mkv')
-    playlist_filtered = handlerPlaylist.extractVODFromPlaylist(extensions)
-    xbmcgui.Dialog().ok(str(__name_plugin__), "Playlist added! It will be recorded for " + str(expiring_days_playlists) + " days.")   
+    xbmcgui.Dialog().ok(str(__name_plugin__), "Playlist added! It will be recorded for " + str(expiring_days_cache) + " days.")
 
 if mode == "select_languages":
     handlerPlaylist.selectLanguages()
-    handlerPlaylist.filterVODbyLanguage()
 
 if mode == "select_kind_of_media":
     handlerPlaylist.selectKindOfMedia()
@@ -93,13 +92,16 @@ if mode == "select_strm_folder":
     handlerStrm.selectStrmFolder()
 
 if mode == "create_strm_files":
+    handlerPlaylist.extractVODFromPlaylist()
+    handlerPlaylist.filterVODbyLanguage()
+    handlerPlaylist.filterVODbyKindOfMedia()
     handlerStrm.setStrmFolder()
     playlist = handlerPlaylist.getPlaylistFiltered()
     handlerStrm.createStrmFileFromPlaylist(playlist)
     xbmcgui.Dialog().ok(str(__name_plugin__), "All .strm files created!")
     
 if mode == "debug":
-    xbmcgui.Dialog().ok(str(__name_plugin__), str( handlerPlaylist.getPlaylistFiltered() ))
+    xbmcgui.Dialog().ok(str(__name_plugin__), str( sys.argv[2]))
 
 else:
     show_root_menu()

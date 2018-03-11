@@ -24,9 +24,6 @@ import xbmcgui
 
 from resources.playlist.model_classes.playlist import playlist
 
-def createInstance():
-
-    return playlist()
 
 def openLocalPlaylist():
     path = playlist().selectLocalPlaylist()
@@ -35,10 +32,15 @@ def openLocalPlaylist():
     return items
     
     
-def extractVODFromPlaylist(extensions):
+def extractVODFromPlaylist():
+    extensions = ('.avi', '.mkv')
     items = playlist().extractVODFromPlaylist(extensions)
 
     return items
+
+def filterVODbyKindOfMedia():
+    playlist().filterVODbyKindOfMedia()
+
 
 def filterVODbyLanguage():
     filtering_keywords = playlist().getLanguageFilteringKeywords()
@@ -46,7 +48,7 @@ def filterVODbyLanguage():
 
 
 def getFilteringKeywords():
-    filtering_keywords = playlist().getFilteringKeyworkds()
+    filtering_keywords = playlist().getFilteringKeywords()
     playlist().filterVODbyKeywords(filtering_keywords)
 
     
@@ -68,8 +70,6 @@ def selectKindOfMedia():
     if 1 in list_kind_of_media:
         kind_of_media.append("TV Shows")
     playlist().selectKindOfMedia(kind_of_media)
-    #playlist().deleteDuplicates()
-    playlist().splitVODbyKindOfMedia()
 
 
 def selectLanguages():
